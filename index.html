@@ -23,13 +23,24 @@
     header h1 { margin:0; font-size:28px; }
     header p { margin:5px 0 0; font-size:16px; }
     .card { background:white; padding:20px; margin:20px auto; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15); max-width:650px; }
-    .card img { border-radius:10px; margin-bottom:15px; }
+    .card img { border-radius:10px; margin-bottom:15px; width:100%; height:auto; }
     .btn { background:#ff6600; color:white; padding:14px 28px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block; margin-top:10px; transition:0.3s; }
     .btn:hover { background:#e65c00; }
     .btn.cta { position: sticky; bottom:20px; z-index:999; }
-    footer { margin-top:40px; padding:15px; background:#eee; font-size:14px; }
-    footer a { color:#ff6600; text-decoration:none; margin:0 5px; }
+    .btn[aria-disabled="true"] { pointer-events:none; opacity:.6; }
+    footer { margin-top:40px; padding:15px; background:#eee; font-size:14px; display:flex; flex-wrap:wrap; justify-content:center; gap:5px; }
+    footer a { color:#ff6600; text-decoration:none; }
     footer a:hover { text-decoration:underline; }
+
+    #redirect-message { display:none; color:#ff6600; font-weight:bold; margin:15px 0; transition: opacity 0.3s; }
+
+    @media (max-width:480px){
+      header h1 { font-size:22px; }
+      header p { font-size:14px; }
+      .card { padding:15px; }
+      .btn { padding:12px 20px; font-size:14px; }
+      .btn.cta { bottom:15px; }
+    }
   </style>
 </head>
 <body>
@@ -41,22 +52,22 @@
 
 <div class="card">
   <h2>🔥 Top Picks</h2>
-  <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=1200&q=80" alt="Tech Trends 2025" width="100%">
+  <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=1200&q=80" alt="Tech Trends 2025">
   <p>Stay ahead with viral entertainment, latest sports highlights and must-have gadgets.</p>
-  <a href="#" onclick="getLink()" class="btn cta">Explore Now</a>
+
+  <div id="redirect-message"></div>
+  
+  <a href="#" onclick="getLink()" class="btn cta" aria-disabled="true">Explore Now</a>
 </div>
 
 <footer>
-  <p>
-    <a href="about.html">About Us</a> | 
-    <a href="privacy.html">Privacy Policy</a> | 
-    <a href="terms.html">Terms of Service</a> | 
-    <a href="contact.html">Contact</a>
-  </p>
-  <p>© 2025 Trends Hub</p>
+  <a href="about.html">About Us</a> | 
+  <a href="privacy.html">Privacy Policy</a> | 
+  <a href="terms.html">Terms of Service</a> | 
+  <a href="contact.html">Contact</a>
 </footer>
 
-<!-- Random redirect with sessionStorage limit -->
+<!-- Random redirect links -->
 <script>
   const links = [
     "https://otieu.com/4/9647786",
@@ -65,74 +76,95 @@
     "https://otieu.com/4/9647793",
     "https://otieu.com/4/9647808"
   ];
-  function getLink(){
-    if(sessionStorage.getItem("clicked")) return;
-    sessionStorage.setItem("clicked",1);
+
+  function getLink() {
+    if(sessionStorage.getItem("clicked")) {
+      showRedirectMessage("✅ You have already visited a link during this session.", links[0]);
+      return;
+    }
+    sessionStorage.setItem("clicked", 1);
     const i = Math.floor(Math.random() * links.length);
     window.location.href = links[i];
   }
 </script>
 
-<!-- ProPush script with 4s delay -->
+<!-- ProPush script -->
 <script>
   setTimeout(()=>{
-    var s=document.createElement('script');
+    const s = document.createElement('script');
     s.src='https://yohle.com/5ba/41452/mw.min.js?z=9857170&sw=/sw-check-permissions-c49ab.js';
     s.async=true;
     document.head.appendChild(s);
   }, 4000);
 </script>
 
-<!-- Bot Filter + GA tracking -->
+<!-- Enhanced CTA + Bot Filter -->
 <script>
 (function(){
-  const DELAY_MS = 2000, MIN_ACTIVITY = 1;
-  const ctas = Array.from(document.querySelectorAll('.btn, .cta'));
+  const DELAY_MS = 2000, MIN_ACTIVITY = 3;
+  const ctas = Array.from(document.querySelectorAll('.btn.cta'));
+  const messageEl = document.getElementById('redirect-message');
   if (!ctas.length) return;
 
-  let isBot=false, activityCount=0;
+  let isBot = false, activityCount = 0;
+
+  // Bot detection
   try {
-    if(navigator.webdriver) isBot=true;
-    const ua=navigator.userAgent||'';
-    if(/(HeadlessChrome|PhantomJS|puppeteer|bot|crawler|spider|curl|wget)/i.test(ua)) isBot=true;
+    if(navigator.webdriver) isBot = true;
+    const ua = navigator.userAgent || '';
+    if(/(HeadlessChrome|PhantomJS|puppeteer|bot|crawler|spider|curl|wget)/i.test(ua)) isBot = true;
+    if(navigator.plugins && navigator.plugins.length === 0) isBot = true;
   } catch(e){}
 
-  const markActive=()=>{activityCount=Math.min(999,activityCount+1);};
-  ['mousemove','scroll','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,markActive,{passive:true}));
+  // Track user activity
+  const markActive = ()=>{ activityCount = Math.min(999, activityCount+1); };
+  ['mousemove','scroll','touchstart','keydown'].forEach(ev => window.addEventListener(ev, markActive, {passive:true}));
 
+  // Disable CTAs initially
   ctas.forEach(btn=>{
-    btn.dataset._origHref=btn.getAttribute('href')||'#';
-    btn.setAttribute('href','#');
-    btn.dataset._disabled='1';
-    btn.style.pointerEvents='none';
-    btn.style.opacity='.6';
+    btn.dataset._origHref = btn.getAttribute('href')||'#';
+    btn.setAttribute('aria-disabled','true');
   });
 
+  // Enable CTAs after delay if user engaged
   setTimeout(()=>{
-    const engaged=activityCount>=MIN_ACTIVITY;
-    if(window.gtag) gtag('event','page_view',{bot_suspected:isBot?1:0, engaged:engaged?1:0});
-    if(!isBot && engaged){
-      ctas.forEach(btn=>{
-        delete btn.dataset._disabled;
-        btn.style.pointerEvents='';
-        btn.style.opacity='';
-      });
-    } else {
-      ctas.forEach(btn=>btn.style.display='none');
-    }
+    const engaged = activityCount >= MIN_ACTIVITY;
+    if(window.gtag) gtag('event','engagement_check',{ bot_suspected:isBot?1:0, engaged:engaged?1:0 });
+    ctas.forEach(btn=>{
+      if(!isBot && engaged){
+        btn.removeAttribute('aria-disabled');
+      } else {
+        btn.setAttribute('aria-disabled','true');
+      }
+    });
   }, DELAY_MS);
 
+  // CTA click handling
   ctas.forEach(btn=>{
     btn.addEventListener('click', function(ev){
       ev.preventDefault();
-      if(btn.dataset._disabled==='1') return;
+      if(btn.getAttribute('aria-disabled')==='true') return;
       const label=btn.textContent.trim().slice(0,60);
-      if(window.gtag) gtag('event','cta_click',{event_category:'engagement',event_label:label,value:1});
+      if(window.gtag) gtag('event','cta_click',{ event_category:'engagement', event_label:label, value:1 });
       setTimeout(()=>{ if(typeof window.getLink==='function') getLink(); },120);
     }, {passive:false});
   });
+
+  // Show fallback message
+  window.showRedirectMessage = function(msg, fallbackLink){
+    if(!messageEl) return;
+    messageEl.innerHTML = msg + (fallbackLink ? ` <a href="${fallbackLink}" target="_blank" rel="noopener noreferrer">Click here</a>` : '');
+    messageEl.style.display='block';
+    messageEl.style.opacity=0;
+    setTimeout(()=>messageEl.style.opacity=1,10);
+  };
+
 })();
 </script>
 
 </body>
 </html>
+
+</body>
+</html>
+
